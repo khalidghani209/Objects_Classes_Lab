@@ -1,0 +1,176 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <limits>
+
+class BankAccount {
+private:
+    std::string accountNumber;
+    std::string accountHolderName;
+    double balance;
+
+public:
+    // Default constructor
+    BankAccount() : accountNumber(""), accountHolderName(""), balance(0.0) {}
+
+    // Parameterized constructor
+    BankAccount(std::string accNum, std::string accName, double initialBal) 
+        : accountNumber(accNum), accountHolderName(accName), balance(initialBal >= 0 ? initialBal : 0.0) {}
+
+    // Accessors (Getters)
+    std::string getAccountNumber() const { return accountNumber; }
+    std::string getAccountHolderName() const { return accountHolderName; }
+    double getBalance() const { return balance; }
+
+    // Mutator (Setter)
+    void setAccountHolderName(const std::string& newName) {
+        accountHolderName = newName;
+    }
+
+    // Member functions
+    void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            std::cout << "Deposit successful. New balance: $" << balance << "\n";
+        } else {
+            std::cout << "Error: Deposit amount must be positive.\n";
+        }
+    }
+
+    void withdraw(double amount) {
+        if (amount <= 0) {
+            std::cout << "Error: Withdrawal amount must be positive.\n";
+        } else if (amount > balance) {
+            std::cout << "Error: Insufficient funds. Current balance: $" << balance << "\n";
+        } else {
+            balance -= amount;
+            std::cout << "Withdrawal successful. New balance: $" << balance << "\n";
+        }
+    }
+};
+
+// Helper function to handle robust integer input
+int getValidChoice() {
+    int choice;
+    while (!(std::cin >> choice)) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Invalid input. Please enter a valid number: ";
+    }
+    std::cin.ignore(); // Clear the newline character left in the buffer
+    return choice;
+}
+
+// Helper function to handle robust double input
+double getValidDouble() {
+    double value;
+    while (!(std::cin >> value)) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Invalid input. Please enter a valid amount: ";
+    }
+    std::cin.ignore();
+    return value;
+}
+
+// Helper function to find an account by number
+int findAccountIndex(const std::vector<BankAccount>& accounts, const std::string& accNum) {
+    for (size_t i = 0; i < accounts.size(); ++i) {
+        if (accounts[i].getAccountNumber() == accNum) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int main() {
+    std::vector<BankAccount> accounts;
+    int choice = 0;
+
+    while (choice != 5) {
+        std::cout << "\n--- Bank Account Management System ---\n";
+        std::cout << "1. Create New Account\n";
+        std::cout << "2. Deposit Funds\n";
+        std::cout << "3. Withdraw Funds\n";
+        std::cout << "4. Display All Accounts\n";
+        std::cout << "5. Exit\n";
+        std::cout << "Enter your choice: ";
+        
+        choice = getValidChoice();
+
+        switch (choice) {
+            case 1: {
+                std::string accNum, name;
+                double initialBal;
+                
+                std::cout << "Enter Account Number: ";
+                std::getline(std::cin, accNum);
+                
+                if (findAccountIndex(accounts, accNum) != -1) {
+                    std::cout << "Error: An account with this number already exists.\n";
+                    break;
+                }
+
+                std::cout << "Enter Account Holder Name: ";
+                std::getline(std::cin, name);
+                
+                std::cout << "Enter Initial Balance: $";
+                initialBal = getValidDouble();
+                
+                accounts.push_back(BankAccount(accNum, name, initialBal));
+                std::cout << "Account created successfully.\n";
+                break;
+            }
+            case 2: {
+                std::string accNum;
+                std::cout << "Enter Account Number: ";
+                std::getline(std::cin, accNum);
+                
+                int index = findAccountIndex(accounts, accNum);
+                if (index != -1) {
+                    std::cout << "Enter deposit amount: $";
+                    double amount = getValidDouble();
+                    accounts[index].deposit(amount);
+                } else {
+                    std::cout << "Error: Account not found.\n";
+                }
+                break;
+            }
+            case 3: {
+                std::string accNum;
+                std::cout << "Enter Account Number: ";
+                std::getline(std::cin, accNum);
+                
+                int index = findAccountIndex(accounts, accNum);
+                if (index != -1) {
+                    std::cout << "Enter withdrawal amount: $";
+                    double amount = getValidDouble();
+                    accounts[index].withdraw(amount);
+                } else {
+                    std::cout << "Error: Account not found.\n";
+                }
+                break;
+            }
+            case 4: {
+                if (accounts.empty()) {
+                    std::cout << "No accounts available to display.\n";
+                } else {
+                    std::cout << "\n--- All Accounts ---\n";
+                    for (const auto& acc : accounts) {
+                        std::cout << "Account: " << acc.getAccountNumber() 
+                                  << " | Name: " << acc.getAccountHolderName() 
+                                  << " | Balance: $" << acc.getBalance() << "\n";
+                    }
+                }
+                break;
+            }
+            case 5:
+                std::cout << "Exiting system. Goodbye!\n";
+                break;
+            default:
+                std::cout << "Invalid choice. Please select a number between 1 and 5.\n";
+        }
+    }
+
+    return 0;
+}
